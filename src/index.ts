@@ -132,13 +132,6 @@ class NotificationServer {
     // Store the API key associated with the droplertId
     this.storeApiKey(droplertId, apiKey);
 
-    // Verify API key matches the stored value
-    if (!this.verifyApiKey(apiKey, droplertId)) {
-      console.error(`[Subscription] Invalid API key for user: ${droplertId}`);
-      ws.send(JSON.stringify({ error: 'Invalid API key' }));
-      ws.close();
-      return;
-    }
 
     ws.droplertId = droplertId;
     ws.websiteUrl = websiteUrl;
