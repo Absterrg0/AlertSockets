@@ -45,7 +45,6 @@ const SubscriptionMessageSchema = z.object({
   action: z.literal('subscribe'),
   droplertId: z.string(),
   websiteUrl: z.string(),
-  apiKey: z.string()
 });
 
 const VerifySubscriptionSchema = z.object({
@@ -125,45 +124,50 @@ class NotificationServer {
   }
 
   private async handleSubscription(ws: WebSocketClient, data: SubscriptionMessage): Promise<void> {
-    const { droplertId, websiteUrl, apiKey } = data;
-
+    const { droplertId, websiteUrl } = data;
+  
     console.log(`[Subscription] Received subscription from ${droplertId} for website: ${websiteUrl}`);
-
-    // Store the API key associated with the droplertId
-    this.storeApiKey(droplertId, apiKey);
-
-
+  
+    // Directly associate the WebSocket client with droplertId and websiteUrl
     ws.droplertId = droplertId;
     ws.websiteUrl = websiteUrl;
-
+  
+    // Ensure the user channel for this droplertId exists
     if (!this.userChannels.has(droplertId)) {
       this.userChannels.set(droplertId, new Set());
     }
+  
+    // Add the WebSocket client to the corresponding channel
     this.userChannels.get(droplertId)?.add(ws);
-
+  
     console.log(`[Subscription] ${droplertId} successfully subscribed to notifications for ${websiteUrl}`);
-    ws.send(JSON.stringify({
-      success: true,
-      message: `Subscribed to notifications for ${websiteUrl}`
-    }));
+    ws.send(
+      JSON.stringify({
+        success: true,
+        message: `Subscribed to notifications for ${websiteUrl}`,
+      })
+    );
   }
+  
 
   private async handleNotification(req: Request, res: Response): Promise<void> {
     try {
       const payload = NotificationPayloadSchema.parse(req.body);
       console.log('[Notification] Received notification payload:', payload);
-
+  
       const { droplertId, websites, notification } = payload;
-
+  
+      // Retrieve the connected clients for the given droplertId
       const userClients = this.userChannels.get(droplertId);
       if (!userClients) {
         console.error('[Notification] No connected websites found for user:', droplertId);
         res.status(404).json({ error: 'No connected websites found for user' });
         return;
       }
-
+  
       console.log(`[Notification] Sending notification to ${websites.length} websites for user ${droplertId}`);
-
+  
+      // Iterate over connected clients and send notifications
       userClients.forEach((client) => {
         if (
           client.readyState === WebSocket.OPEN &&
@@ -171,13 +175,15 @@ class NotificationServer {
           websites.includes(client.websiteUrl)
         ) {
           console.log(`[Notification] Sending notification to website ${client.websiteUrl}`);
-          client.send(JSON.stringify({
-            type: 'notification',
-            data: notification
-          }));
+          client.send(
+            JSON.stringify({
+              type: 'notification',
+              data: notification,
+            })
+          );
         }
       });
-
+  
       res.json({ success: true, message: 'Notification sent' });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -189,6 +195,7 @@ class NotificationServer {
       }
     }
   }
+  
 
   // private async verifySubscription(req: Request, res: Response): Promise<void> {
   //   try {
