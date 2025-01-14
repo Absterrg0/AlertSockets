@@ -61,17 +61,19 @@ type SubscriptionMessage = z.infer<typeof SubscriptionMessageSchema>;
 type VerifySubscriptionMessage = z.infer<typeof VerifySubscriptionSchema>;
 type SetApiKeyMessage = z.infer<typeof SetApiKeySchema>;
 
+
+const app = express();
+app.use(express.json());
+app.get('/', (req, res) => {
+  res.send('WebSocket server is running');
+}); 
+
 class NotificationServer {
   private readonly userChannels: Map<string, Set<WebSocketClient>> = new Map();
   private readonly apiKeys: Map<string, string> = new Map(); // apiKey -> droplertId
 
-  constructor() {
-    const app = express();
-    app.use(express.json());
+  constructor() {   
 
-    app.get('/', (req, res) => {
-      res.send('WebSocket server is running');
-    });    
     // HTTP server for REST API
     const httpServer = http.createServer(app);
     const PORT = process.env.PORT || 8080;
@@ -197,59 +199,6 @@ class NotificationServer {
   }
   
 
-  // private async verifySubscription(req: Request, res: Response): Promise<void> {
-  //   try {
-  //     const apiKey = req.headers['apikey'] as string;
-
-  //     if (!apiKey) {
-  //       console.error('[Verify Subscription] Missing API key in headers');
-  //       res.status(401).json({ error: 'Missing API key in headers' });
-  //       return;
-  //     }
-
-  //     const { droplertId, websiteUrl } = VerifySubscriptionSchema.parse(req.body);
-
-  //     if (this.apiKeys.get(droplertId) !== apiKey) {
-  //       console.error('[Verify Subscription] Invalid API key');
-  //       res.status(403).json({ error: 'Invalid API key' });
-  //       return;
-  //     }
-
-  //     const userClients = this.userChannels.get(droplertId);
-  //     if (!userClients) {
-  //       console.error('[Verify Subscription] No active connections found for user:', droplertId);
-  //       res.status(404).json({ error: 'No active connections found for user' });
-  //       return;
-  //     }
-
-  //     const isWebsiteAlreadySubscribed = [...userClients].some(client => client.websiteUrl === websiteUrl);
-  //     if (isWebsiteAlreadySubscribed) {
-  //       console.log(`[Verify Subscription] Website ${websiteUrl} is already subscribed for user ${droplertId}`);
-  //       res.status(200).json({
-  //         success: true,
-  //         message: `Website ${websiteUrl} is already subscribed for notifications`
-  //       });
-  //       return;
-  //     }
-
-  //     const newClient: WebSocketClient = { droplertId, websiteUrl, isAlive: true } as WebSocketClient;
-  //     userClients.add(newClient);
-
-  //     console.log(`[Verify Subscription] User ${droplertId} has been successfully verified for website ${websiteUrl}`);
-  //     res.json({
-  //       success: true,
-  //       message: `Website ${websiteUrl} successfully verified and added to notifications`
-  //     });
-  //   } catch (error) {
-  //     if (error instanceof z.ZodError) {
-  //       console.error('[Verify Subscription] Invalid request format:', error.errors);
-  //       res.status(400).json({ error: 'Invalid request format', details: error.errors });
-  //     } else {
-  //       console.error('[Verify Subscription] Error during verification:', error);
-  //       res.status(500).json({ error: 'Internal server error' });
-  //     }
-  //   }
-  // }
 
   private async setApiKey(req: Request, res: Response): Promise<void> {
     try {
