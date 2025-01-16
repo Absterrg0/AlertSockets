@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import { z } from 'zod';
+import './ping'
 
 // Type Definitions
 interface WebSocketClient extends WebSocket {
