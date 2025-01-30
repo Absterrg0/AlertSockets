@@ -22,7 +22,7 @@ interface NotificationPayload {
     backgroundColor: string;
     textColor: string;
     borderColor: string;
-    imageUrl?: string;
+    fileName?: string;
   };
 }
 
@@ -38,7 +38,7 @@ const NotificationPayloadSchema = z.object({
     backgroundColor: z.string(),
     textColor: z.string(),
     borderColor: z.string(),
-    imageUrl: z.string().optional()
+    fileName: z.string().optional()
   })
 });
 
@@ -286,7 +286,7 @@ class NotificationServer {
           console.error('[Cleanup] Client is not a WebSocket instance');
         }
       });
-    });
+    }); 
   }
   
 }
