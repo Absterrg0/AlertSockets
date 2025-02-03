@@ -38,7 +38,9 @@ const NotificationPayloadSchema = z.object({
     backgroundColor: z.string(),
     textColor: z.string(),
     borderColor: z.string(),
-    fileName: z.string().optional()
+    fileName: z.string().optional(),
+    routes:z.array(z.string()).optional(),
+    borderRadius:z.number()
   })
 });
 
